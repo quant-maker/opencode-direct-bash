@@ -1,5 +1,3 @@
-import type { Plugin } from "@opencode-ai/plugin"
-
 /**
  * DirectBashPlugin - Execute bash commands directly without LLM processing
  * 
@@ -13,77 +11,69 @@ import type { Plugin } from "@opencode-ai/plugin"
  * This plugin intercepts prompts starting with ! and executes them
  * as bash commands directly, without sending them to the LLM.
  */
-export const DirectBashPlugin: Plugin = async ({ client, $ }) => {
+export const DirectBashPlugin = async ({ client, $ }: any) => {
   return {
-    "tui.prompt.append": async (input, output) => {
-      const prompt = input.prompt.trim()
-      
-      // Check if prompt starts with !
-      if (!prompt.startsWith("!")) {
-        return
+    event: async ({ event }: any) => {
+      // Check for tui.command.execute event with ! prefix
+      if (event.type === "tui.command.execute") {
+        const command = event.command?.trim()
+        
+        if (!command || !command.startsWith("!")) {
+          return
+        }
+        
+        // Extract command (remove leading !)
+        const bashCommand = command.slice(1).trim()
+        
+        if (!bashCommand) {
+          // Show help if only ! is entered
+          await client.app.log({
+            service: "direct-bash",
+            level: "info",
+            message: "Usage: !<command> to execute bash commands directly",
+          })
+          return
+        }
+        
+        try {
+          // Log command execution
+          await client.app.log({
+            service: "direct-bash",
+            level: "info",
+            message: `Executing: ${bashCommand}`,
+          })
+          
+          // Execute command using Bun shell API
+          const result = await $`${bashCommand}`.text()
+          
+          // Log execution result
+          await client.app.log({
+            service: "direct-bash",
+            level: "info",
+            message: "Command executed successfully",
+            extra: { 
+              command: bashCommand,
+              output: result.slice(0, 500) // Only log first 500 characters
+            },
+          })
+          
+          // Print output to console
+          console.log(result)
+          
+        } catch (error) {
+          // Error handling
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          
+          await client.app.log({
+            service: "direct-bash",
+            level: "error",
+            message: `Command failed: ${bashCommand}`,
+            extra: { error: errorMessage },
+          })
+          
+          console.error(`Error: ${errorMessage}`)
+        }
       }
-      
-      // Extract command (remove leading !)
-      const command = prompt.slice(1).trim()
-      
-      if (!command) {
-        // Show help if only ! is entered
-        await client.app.log({
-          service: "direct-bash",
-          level: "info",
-          message: "Usage: !<command> to execute bash commands directly",
-        })
-        output.prevent = true
-        return
-      }
-      
-      try {
-        // Log command execution
-        await client.app.log({
-          service: "direct-bash",
-          level: "info",
-          message: `Executing: ${command}`,
-        })
-        
-        // Execute command using Bun shell API
-        const result = await $`${command}`.text()
-        
-        // Log execution result
-        await client.app.log({
-          service: "direct-bash",
-          level: "info",
-          message: "Command executed successfully",
-          extra: { 
-            command,
-            output: result.slice(0, 500) // Only log first 500 characters
-          },
-        })
-        
-        // Show success toast notification
-        await client.tui.toast.show({
-          message: `Command executed: ${command}`,
-          level: "success",
-        })
-        
-      } catch (error) {
-        // Error handling
-        const errorMessage = error instanceof Error ? error.message : String(error)
-        
-        await client.app.log({
-          service: "direct-bash",
-          level: "error",
-          message: `Command failed: ${command}`,
-          extra: { error: errorMessage },
-        })
-        
-        await client.tui.toast.show({
-          message: `Command failed: ${errorMessage}`,
-          level: "error",
-        })
-      }
-      
-      // Prevent prompt from being sent to LLM
-      output.prevent = true
     },
   }
 }
