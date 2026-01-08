@@ -1,0 +1,48 @@
+{
+  "name": "opencode-direct-bash",
+  "version": "1.0.0",
+  "description": "Execute bash commands directly in OpenCode without LLM processing",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "bash",
+    "command",
+    "cli",
+    "shell",
+    "terminal",
+    "direct-execution",
+    "ai-agent"
+  ],
+  "author": "quant-maker",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quant-maker/opencode-direct-bash.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quant-maker/opencode-direct-bash/issues"
+  },
+  "homepage": "https://github.com/quant-maker/opencode-direct-bash#readme",
+  "peerDependencies": {
+    "@opencode-ai/plugin": "^1.0.0"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,6 @@
+# opencode-direct-bash
+
+node_modules/
+dist/
+*.log
+.DS_Store
